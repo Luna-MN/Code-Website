@@ -72,7 +72,6 @@ const CodeExecutor: React.FC = () => {
 
     return (
         <div>
-            <h1>Python Code Executor</h1>
             <CodeMirror
                 value={code}
                 options={{
