@@ -8,6 +8,7 @@ import 'codemirror/theme/material.css';
 import 'codemirror/mode/python/python';
 import 'codemirror/mode/javascript/javascript';
 import 'codemirror/mode/ruby/ruby';
+import 'codemirror/mode/clike/clike';
 
 const CodeExecutor: React.FC = () => {
     const [code, setCode] = useState<string>(''); // Code input
@@ -19,6 +20,7 @@ const CodeExecutor: React.FC = () => {
         { value: 'python', label: 'Python' },
         { value: 'javascript', label: 'JavaScript' },
         { value: 'ruby', label: 'Ruby' },
+        { value: 'csharp', label: 'C#' },
     ];
 
     useEffect(() => {
@@ -63,7 +65,47 @@ const CodeExecutor: React.FC = () => {
     };
 
     const executeCode = async () => {
-        if (language === 'python' && pyodide) {
+        if (language === 'csharp') {
+            try {
+                // Judge0 API endpoint
+                const JUDGE0_API_URL =
+                    'https://judge0.p.rapidapi.com/submissions';
+
+                // Prepare the payload
+                const payload = {
+                    source_code: code,
+                    language_id: 51, // 51 is the language ID for C# in Judge0
+                    stdin: '', // Add any required input for the program here
+                };
+
+                // Send the request to Judge0
+                const response = await fetch(
+                    `${JUDGE0_API_URL}?base64_encoded=false&wait=true&fields=`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'x-rapidapi-key': process.env
+                                .REACT_APP_RAPIDAPI_KEY as string,
+                            'x-rapidapi-host': 'judge0-ce.p.rapidapi.com',
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(payload),
+                    }
+                );
+
+                if (!response.ok) {
+                    throw new Error(
+                        `API error: ${response.status} ${response.statusText}`
+                    );
+                }
+
+                // Parse the response
+                const result = await response.json();
+                setOutput(result.stdout || result.stderr || 'No output');
+            } catch (error) {
+                setOutput((error as Error).toString());
+            }
+        } else if (language === 'python' && pyodide) {
             try {
                 pyodide.runPython(code);
                 const output = pyodide.runPython('sys.stdout.getvalue()');
@@ -87,8 +129,8 @@ const CodeExecutor: React.FC = () => {
             } catch (error) {
                 setOutput((error as Error).toString());
             }
-        } else if (language === 'ruby') {
-            setOutput('Ruby execution is not supported.');
+        } else {
+            setOutput(`${language} execution is not supported.`);
         }
     };
 
@@ -129,7 +171,7 @@ const CodeExecutor: React.FC = () => {
             <CodeMirror
                 value={code}
                 options={{
-                    mode: language,
+                    mode: language === 'csharp' ? 'text/x-csharp' : language,
                     theme: 'material',
                     lineNumbers: true,
                 }}
