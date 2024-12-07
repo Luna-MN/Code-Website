@@ -10,6 +10,8 @@ import 'codemirror/mode/javascript/javascript';
 import 'codemirror/mode/ruby/ruby';
 import 'codemirror/mode/clike/clike';
 
+import styles from './CodeExecutor.module.css';
+
 const CodeExecutor: React.FC = () => {
     const [code, setCode] = useState<string>(''); // Code input
     const [output, setOutput] = useState<string>(''); // Output of execution
@@ -102,13 +104,37 @@ const CodeExecutor: React.FC = () => {
             setOutput(`Error: ${(error as Error).message}`);
         }
     };
+    const customStyles = {
+        control: (provided: any) => ({
+            ...provided,
+            backgroundColor: 'white',
+            color: 'black',
+        }),
+        singleValue: (provided: any) => ({
+            ...provided,
+            color: 'black',
+        }),
+        menu: (provided: any) => ({
+            ...provided,
+            backgroundColor: 'white',
+            color: 'black',
+        }),
+        option: (provided: any, state: any) => ({
+            ...provided,
+            backgroundColor: state.isSelected ? 'lightgray' : 'white',
+            color: 'black',
+        }),
+    };
 
     return (
-        <div>
+        <div className={styles.container}>
+            <div className={styles.header}>Code Executor</div>
             <Select
                 options={languageOptions}
                 onChange={handleLanguageChange}
                 defaultValue={languageOptions[0]}
+                styles={customStyles}
+                className={styles.select}
             />
             <CodeMirror
                 value={code}
@@ -120,9 +146,12 @@ const CodeExecutor: React.FC = () => {
                 onBeforeChange={(editor, data, value) => {
                     setCode(value);
                 }}
+                className={styles.editor}
             />
-            <button onClick={executeCode}>Run Code</button>
-            <pre>{output}</pre>
+            <button onClick={executeCode} className={styles.button}>
+                Run Code
+            </button>
+            <pre className={styles.output}>{output}</pre>
         </div>
     );
 };
